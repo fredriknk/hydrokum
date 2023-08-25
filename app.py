@@ -22,7 +22,7 @@ import base64
 
 # Custom Libraries Imports
 from database import Database
-from PLC_kumlib import ConfigPLC, init_plcs, generate_status_indicators
+from PLC_kumlib import ConfigPLC, init_plcs, generate_status_indicators,connect_plcs
 
 # Environment Variables Imports
 from dotenv import load_dotenv
@@ -45,6 +45,7 @@ STATUS_BITS_MULTIPLEXER = {0: "CH1", 1: "CH2", 2: "CH3", 3: "CH4", 4: "CH5", 5: 
 PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM,"V1")
 # Add PLC_multiplexer to PLCS
 PLCS['multiplexer'] = ConfigPLC(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER,"V1")
+connect_plcs(PLCS)
 
 # Initialize Global Variable
 LAST_FETCHED_TIME = dt(1970, 1, 1)  # Initialized to UNIX epoch time

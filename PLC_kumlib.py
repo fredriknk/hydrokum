@@ -99,6 +99,9 @@ def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int],s
     for i, ip in enumerate(ip_addresses):
         plcs[f"{plc_type}{i + 1}"] = ConfigPLC(ip, commands,status_reg)
 
+    return plcs
+
+def connect_plcs(plcs):
     for plc_id, plc in plcs.items():
         try:
             print(f"Connecting to {plc_id}...")
