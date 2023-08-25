@@ -48,7 +48,7 @@ PLCS['multiplexer'] = ConfigPLC(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER,"V1
 # Initialize Global Variable
 LAST_FETCHED_TIME = dt(1970, 1, 1)  # Initialized to UNIX epoch time
 
-# Split PLCS into columns for the layout
+# Split PLCS into COLUMNS for the layout
 N_COLUMNS = 3
 PLCS_IDS = list(PLCS.keys())
 COLUMNS = [PLCS_IDS[i::N_COLUMNS] for i in range(N_COLUMNS)]
@@ -68,7 +68,7 @@ def generate_html_status(status_indicators):
     return html_elements
 
 
-def generate_plc_div(plc_id, PLCS, columns):
+def generate_plc_div(plc_id, PLCS, COLUMNS):
     return html.Div(
         [html.Div(
             [
@@ -81,7 +81,7 @@ def generate_plc_div(plc_id, PLCS, columns):
             ], style={'margin-right': '50px'}
         )
 
-            for plc_id in [id for col in columns for id in col if id != 'multiplexer']
+            for plc_id in [id for col in COLUMNS for id in col if id != 'multiplexer']
 
         ], style={'display': 'flex', 'justify-content': 'space-around'}
     )
@@ -97,7 +97,7 @@ def generate_multiplex_div(PLCS):
     ], style={'margin-right': '50px'})
 
 
-def create_layout(PLCS, columns, plc_id, graph_interval=10 * 1000):
+def create_layout(PLCS, COLUMNS, plc_id, graph_interval=10 * 1000):
     return html.Div(
         [
             html.Img(id='live-feed', src=''),  # camera feed
@@ -109,7 +109,7 @@ def create_layout(PLCS, columns, plc_id, graph_interval=10 * 1000):
             ),
             dcc.Store(id='stored-data', storage_type='session')
             ,
-            generate_plc_div(plc_id, PLCS, columns)
+            generate_plc_div(plc_id, PLCS, COLUMNS)
             ,
             generate_multiplex_div(PLCS)
             ,
@@ -121,7 +121,7 @@ def create_layout(PLCS, columns, plc_id, graph_interval=10 * 1000):
     )
 
 
-app.layout = create_layout(PLCS, columns)
+app.layout = create_layout(PLCS, COLUMNS)
 
 
 @app.callback(
@@ -203,7 +203,7 @@ def update_image(n):
               [State('stored-data', 'data')])  # Use State to get the current data from dcc.Store
 def update_graph_live(n, stored_data, lim=3600):
     # Query all data from the database
-    new_data = pd.DataFrame( db.query_data(None, lim), columns=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
+    new_data = pd.DataFrame( db.query_data(None, lim), COLUMNS=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
 
     # if there's no stored data, store the new data
     if stored_data is None:
@@ -222,7 +222,7 @@ def update_graph_live(n, stored_data, lim=3600):
     fig = make_subplots(rows=4, cols=1, vertical_spacing=0.05)
     fig.update_layout(height=800)
 
-    for i, col in enumerate(df.columns[1:]):
+    for i, col in enumerate(df.COLUMNS[1:]):
         fig.add_trace(go.Scatter(x=df['time'], y=df[col], name=col), row=i + 1, col=1)
 
     # Update xaxis properties
@@ -230,7 +230,7 @@ def update_graph_live(n, stored_data, lim=3600):
 
     # Add annotations with the latest values
     annotations = []
-    for i, col in enumerate(df.columns[1:]):
+    for i, col in enumerate(df.COLUMNS[1:]):
         latest_value = df[col].iloc[1]  # Get the last value
         latest_time = pd.to_datetime(df['time'].iloc[1])  # Converts 'time' string to datetime object
         latest_time_with_offset = latest_time + datetime.timedelta(seconds=1)  # Adds a 1 minute offset
@@ -266,7 +266,7 @@ def update_stored_data(_, stored_data, lim=1000):
         last_plotted_time = None
 
     new_data = pd.DataFrame(query_data(last_plotted_time, lim),
-                            columns=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
+                            COLUMNS=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
 
     if stored_data is None:
         df = new_data
