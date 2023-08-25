@@ -75,7 +75,7 @@ def main():
     HOST = '10.0.20.3'
     PORT = 51020
     db = Database('my_database.sqlite')
-    db.create_tables()
+    db.create_table()
 
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
