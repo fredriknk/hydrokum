@@ -20,7 +20,7 @@ from io import BytesIO
 import base64
 
 # Custom Libraries Imports
-from database import query_data
+from database import Database
 from PLC_kumlib import ConfigPLC, init_plcs, generate_status_indicators
 
 # Environment Variables Imports
@@ -52,6 +52,9 @@ LAST_FETCHED_TIME = dt(1970, 1, 1)  # Initialized to UNIX epoch time
 N_COLUMNS = 3
 PLCS_IDS = list(PLCS.keys())
 COLUMNS = [PLCS_IDS[i::N_COLUMNS] for i in range(N_COLUMNS)]
+
+# Initialize Database object
+db = Database('my_database.sqlite')
 
 app = Dash(__name__)
 
@@ -200,7 +203,7 @@ def update_image(n):
               [State('stored-data', 'data')])  # Use State to get the current data from dcc.Store
 def update_graph_live(n, stored_data, lim=3600):
     # Query all data from the database
-    new_data = pd.DataFrame(query_data(None, lim), columns=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
+    new_data = pd.DataFrame( db.query_data(None, lim), columns=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
 
     # if there's no stored data, store the new data
     if stored_data is None:
