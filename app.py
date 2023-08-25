@@ -91,7 +91,7 @@ def generate_multiplex_div(PLCS):
     return html.Div([
         html.P("PLC Multiplexer: Connected" if PLCS['multiplexer'].connected else "Not connected"),
         html.Div([html.Button(f'{cmd}', id=f'button-multiplexer-{cmd}', n_clicks=0) for cmd in
-                  PLCS['multiplexer'].get_command_list()]),
+                  PLCS['multiplexer'].commands.keys()]),
         html.Div(id=f'status-indicator-multiplexer'),
         html.Div(id=f'output-multiplexer')
     ], style={'margin-right': '50px'})
