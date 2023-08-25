@@ -33,13 +33,14 @@ class MockPLC:
     def get_connected(self):
         return self.connected
 class ConfigPLC:
-    def __init__(self, ip_address: str, commands: Dict[str, int], status_reg: str = "V1", update_status: bool = True):
+    def __init__(self, ip_address: str, commands: Dict[str, int], status_bits = None, status_reg: str = "V1", update_status: bool = True):
         """Initialize the ConfigPLC class."""
         self.logger = logging.getLogger(__name__)
         self.plc = snap7.logo.Logo()
         self.ip_address = ip_address
         self.connected = False
         self.commands = commands
+        self.status_bits = status_bits
 
         self.status_data = {
             'address': status_reg,
@@ -94,10 +95,10 @@ class ConfigPLC:
         return self.status_data['status']
 
 
-def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int],status_reg="V1") -> Dict[str, ConfigPLC]:
+def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int],status_bits= None, status_reg="V1") -> Dict[str, ConfigPLC]:
     plcs = {}
     for i, ip in enumerate(ip_addresses):
-        plcs[f"{plc_type}{i + 1}"] = ConfigPLC(ip, commands,status_reg)
+        plcs[f"{plc_type}{i + 1}"] = ConfigPLC(ip, commands, status_bits , status_reg)
 
     return plcs
 
@@ -115,15 +116,15 @@ def connect_plcs(plcs):
     return plcs
 
 
-def generate_status_indicators(plc: ConfigPLC, bit_meanings: List[str]) -> List[Dict[str, str]]:
+def generate_status_indicators(plc: ConfigPLC) -> List[Dict[str]]:
     status_indicators = []
     if plc.connected:
         status_data = plc.status_data
         binary_representation = format(status_data['status'], '08b')[::-1]
 
-        for i, bit in enumerate(binary_representation[:len(bit_meanings)]):
+        for i, bit in enumerate(binary_representation[:len(plc.status_bits)]):
             color = 'green' if bit == '1' else 'red'
-            status_indicators.append({'text': bit_meanings[i], 'color': color})
+            status_indicators.append({'text': plc.status_bits[i], 'color': color})
 
         return status_indicators
     else:
