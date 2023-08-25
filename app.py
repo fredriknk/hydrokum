@@ -35,7 +35,7 @@ BASE_URL = os.getenv("BASE_URL")
 
 # Define Constants
 IP_ADDRESSES = ["192.168.0.11", "192.168.0.12", "192.168.0.13", "192.168.0.14", "192.168.0.15", "192.168.0.16"]
-IP_ADDRESS_MULTIPLEXER = ["192.168.0.100"]
+IP_ADDRESS_MULTIPLEXER = "192.168.0.100"
 COMMANDS_KUM = {'open': 0b0000011, 'close': 0b0000101, 'estop': 0b0010000, 'none': 0b0000000}
 STATUS_BITS_KUM = {0: "Estop Trigged", 1: "Motor Dir", 2: "Motor run", 3: "Warning buzzer", 4: "Open endstop", 5: "Close endstop"}
 COMMANDS_MULTIPLEXER = {'kum1': 0b01000001, 'kum2': 0b01000010, 'kum3': 0b01000100, 'kum4': 0b01001000, 'kum5': 0b01010000, 'kum6': 0b01100000, 'POW': 0b01000111, 'off': 0b00000000}
