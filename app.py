@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 
 # Dash and Plotly Imports
-from dash import dcc, html, Dash, Input, Output, State
+from dash import dcc, html, Dash, Input, Output, State, callback_context, no_update
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -153,9 +153,9 @@ for plc_id in PLCS.keys():
         [State(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].commands.keys()],
     )
     def send_command(*args):
-        ctx = dash.callback_context
+        ctx = callback_context
         if not ctx.triggered:
-            return dash.no_update
+            return no_update
         else:
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             plc_id, cmd = button_id.split('-')[1:]
