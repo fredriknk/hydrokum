@@ -42,7 +42,8 @@ class ConfigPLC:
         self.connected = False
         self.commands = commands
         self.status_bits = status_bits
-        self.database = database  # Add this line
+        self.database = database
+        self.prev_status = None
 
         self.status_data = {
             'address': status_reg,
