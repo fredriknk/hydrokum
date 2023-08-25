@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 # Load Environment Variables
 load_dotenv()
-USERNAME = os.getenv("USERNAME")
+USER_NAME = os.getenv("USER_NAME")
 PASSWORD = os.getenv("PASSWORD")
 BASE_URL = os.getenv("BASE_URL")
 
@@ -166,7 +166,7 @@ for plc_id in PLCS.keys():
 def update_image(n):
     try:
         # Create the URL using environment variables
-        url = f"{BASE_URL}&user={USERNAME}&password={PASSWORD}&width=640&height=480"
+        url = f"{BASE_URL}&user={USER_NAME}&password={PASSWORD}&width=640&height=480"
         unique_url = f"{url}&t={time.time()}"  # append a unique timestamp to the URL
 
         # Get the image from the URL with a timeout
