@@ -44,9 +44,9 @@ STATUS_BITS_MULTIPLEXER = {0: "CH1", 1: "CH2", 2: "CH3", 3: "CH4", 4: "CH5", 5: 
 db = Database('my_database.sqlite')
 
 # Initialize PLCS
-PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM,STATUS_BITS_KUM,  "V1")
+PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM,STATUS_BITS_KUM,  "V1", db)
 # Add PLC_multiplexer to PLCS
-PLCS['multiplexer'] = ConfigPLC(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER,STATUS_BITS_MULTIPLEXER,"V1")
+PLCS['multiplexer'] = ConfigPLC(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER,STATUS_BITS_MULTIPLEXER,"V1", db)
 connect_plcs(PLCS)
 
 # Initialize Global Variable
@@ -57,8 +57,6 @@ N_COLUMNS = 3
 PLCS_IDS = list(PLCS.keys())
 COLUMNS = [PLCS_IDS[i::N_COLUMNS] for i in range(N_COLUMNS)]
 
-# Initialize Database object
-db = Database('my_database.sqlite')
 
 app = Dash(__name__)
 
