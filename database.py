@@ -67,7 +67,7 @@ class Database:
             if last_plotted_time is None:
                 cur.execute(f"SELECT * FROM data ORDER BY time DESC LIMIT {lim}")
             else:
-                cur.execute(f"SELECT * FROM data WHERE time > {last_plotted_time} ORDER BY time ASC")
+                cur.execute("SELECT * FROM data WHERE time > ? ORDER BY time ASC", (last_plotted_time,)
             return cur.fetchall()
 
 
