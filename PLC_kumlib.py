@@ -2,10 +2,39 @@ import logging
 import snap7
 import time
 import threading
+from typing import List, Dict
+
 logging.basicConfig(level=logging.WARNING)
 
+class MockPLC:
+    def __init__(self):
+        self.connected = False
+        self.status = 0
+
+    def connect(self, *args, **kwargs):
+        print("MockPLC: Attempting to connect.")
+        self.connected = True
+        print("MockPLC: Successfully connected.")
+        return True
+
+    def disconnect(self):
+        print("MockPLC: Disconnecting.")
+        self.connected = False
+
+    def write(self, address, command):
+        print(f"MockPLC: Writing command {command} to address {address}")
+        if address == "V0":
+            self.status = command
+
+    def read(self, address):
+        print(f"MockPLC: Reading status from address {address}")
+        return self.status
+
+    def get_connected(self):
+        return self.connected
 class ConfigPLC:
-    def __init__(self, ip_address, commands, statusAddr, update_status=True):
+    def __init__(self, ip_address: str, commands: Dict[str, int], status_address: str, update_status: bool = True):
+        """Initialize the ConfigPLC class."""
         self.logger = logging.getLogger(__name__)
         self.plc = snap7.logo.Logo()
         self.ip_address = ip_address
@@ -13,96 +42,86 @@ class ConfigPLC:
         self.commands = commands
 
         self.status_data = {
-            'address': statusAddr,
+            'address': status_address,
             'byte_array': bytearray(1),
             'status': 0
         }
 
-        if update_status:
-            self.status_thread = threading.Thread(target=self._update_status, daemon=True)
-        else:
-            self.status_thread = None
+        self.status_thread = threading.Thread(target=self._update_status, daemon=True) if update_status else None
 
-    def connect(self, timeout=5):
+    def connect(self, timeout: int = 5):
+        """Connect to the PLC."""
         try:
             self.plc.connect(self.ip_address, 0x0300, 0x0200)
             self.connected = self.plc.get_connected()
-        except Exception as e:
+        except snap7.Snap7Exception as e:  # Replace with the actual exception types
             self.logger.error(f"Connection failed: {e}")
 
         if self.connected:
             self.logger.info("Connected")
             if self.status_thread:
-                self.status_thread.start()  # start the status update thread if available
-        else:
-            self.logger.error("Connection failed")
+                self.status_thread.start()
 
     def disconnect(self):
+        """Disconnect from the PLC."""
         if self.status_thread and self.status_thread.is_alive():
-            self.status_thread.join()  # stop the status update thread if available
+            self.status_thread.join()
         self.plc.disconnect()
         self.logger.info("Disconnected")
 
-    def write_command(self, address, command, delay=0.1):
+    def write_command(self, address: str, command: int, delay: float = 0.1):
+        """Write command to the PLC."""
         if self.connected:
             self.plc.write(address, command)
             self.logger.info(f"Wrote command 0b{command:08b} to {address}")
-            # For PLC_kum type
-            if command in [self.commands.get('open'), self.commands.get('close'), self.commands.get('estop')]:
-                time.sleep(delay)  # delay in seconds before sending 'none' command
-                self.plc.write(address, self.commands.get('none', 0b0000000))
-                self.logger.info(f"Wrote command 0b{self.commands.get('none', 0b0000000):08b} to {address}")
-        else:
-            self.logger.error("Not connected to the PLC. Please connect first.")
-
-    def get_command_list(self):
-        return self.commands.keys()
+            if command in [self.commands.get(key) for key in ['open', 'close', 'estop']]:
+                time.sleep(delay)
+                self.plc.write(address, self.commands.get('none', 0))
+                self.logger.info(f"Wrote command 0b{self.commands.get('none', 0):08b} to {address}")
 
     def _update_status(self):
+        """Update status of the PLC."""
         while self.connected:
             try:
                 self.status_data['status'] = self.plc.read(self.status_data['address'])
-                time.sleep(1.0)  # Update status every 0.3 seconds
-            except Exception as e:
+                time.sleep(1.0)
+            except snap7.Snap7Exception as e:  # Replace with the actual exception types
                 self.logger.error(f"Error updating status: {e}")
                 self.connected = False
 
-    def get_status(self):
+    def get_status(self) -> int:
+        """Get the current status of the PLC."""
         return self.status_data['status']
 
-def init_plcs(ip_addresses, type , commands):
-        plcs = {}
 
-        # Define your PLCs
-        for i, ip in enumerate(ip_addresses,commands):
-            plcs[f"{type}{i + 1}"] = ConfigPLC(ip,commands)
+def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int]) -> Dict[str, ConfigPLC]:
+    plcs = {}
+    for i, ip in enumerate(ip_addresses):
+        plcs[f"{plc_type}{i + 1}"] = ConfigPLC(ip, commands)
 
-        # Connect all PLCs
-        for plc_id in plcs.keys():
-            try:
-                print(f"Connecting to {plc_id}...")
-                plcs[plc_id].connect()
-                plcs[plc_id].status = 'Connected'
-                print(f"Connected to {plc_id}")
-            except Exception as e:
-                plcs[plc_id].status = 'PLC unreachable'
-                print(f"Failed to connect to {plc_id}. Error: {str(e)}")
+    for plc_id, plc in plcs.items():
+        try:
+            print(f"Connecting to {plc_id}...")
+            plc.connect()
+            plc.status = 'Connected'
+            print(f"Connected to {plc_id}")
+        except Exception as e:
+            plc.status = 'PLC unreachable'
+            print(f"Failed to connect to {plc_id}. Error: {e}")
 
-        return plcs
+    return plcs
 
 
-def generate_status_indicators(plc, bit_meanings):
+def generate_status_indicators(plc: ConfigPLC, bit_meanings: List[str]) -> List[Dict[str, str]]:
     status_indicators = []
     if plc.status == 'Connected':
         status_data = plc.status_data
         binary_representation = format(status_data['status'], '08b')[::-1]
 
-        for i, bit in zip(range(6), binary_representation):
+        for i, bit in enumerate(binary_representation[:len(bit_meanings)]):
             color = 'green' if bit == '1' else 'red'
             status_indicators.append({'text': bit_meanings[i], 'color': color})
 
         return status_indicators
-
     else:
-        status_indicators.append({'text': "PLC not connected", 'color': 'red'})
-        return status_indicators
+        return [{'text': "PLC not connected", 'color': 'red'}]

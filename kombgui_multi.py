@@ -1,89 +1,57 @@
-# Dash and Plotly
-from dash import dcc, html, Dash, Input, Output, State
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
-# Standard Library
+# Standard Library Imports
 import os
 import time
 from datetime import datetime as dt
 
-# Data Handling
+# Dash and Plotly Imports
+from dash import dcc, html, Dash, Input, Output, State
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+# Data Handling Imports
 import pandas as pd
 import sqlite3
 from sqlite3 import Error
 
-# Image and Requests
+# Image and Requests Imports
 import requests
 from PIL import Image
 from io import BytesIO
 import base64
 
-# Custom Libraries
-from PLC_kumlib import PLC_kum, PLC_multiplexer, init_plcs
+# Custom Libraries Imports
+from database import query_data
+from PLC_kumlib import ConfigPLC, init_plcs, generate_status_indicators
 
-# Environment Variables
+# Environment Variables Imports
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load Environment Variables
 load_dotenv()
 USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 BASE_URL = os.getenv("BASE_URL")
 
-# Define your IP addresses
-ip_addresses = ["192.168.0.11", "192.168.0.12", "192.168.0.13", "192.168.0.14", "192.168.0.15", "192.168.0.16"]
-ip_address_multiplexer = ["192.168.0.100"]
+# Define Constants
+IP_ADDRESSES = ["192.168.0.11", "192.168.0.12", "192.168.0.13", "192.168.0.14", "192.168.0.15", "192.168.0.16"]
+IP_ADDRESS_MULTIPLEXER = ["192.168.0.100"]
+COMMANDS_KUM = {'open': 0b0000011, 'close': 0b0000101, 'estop': 0b0010000, 'none': 0b0000000}
+STATUS_BITS_KUM = {0: "Estop Trigged", 1: "Motor Dir", 2: "Motor run", 3: "Warning buzzer", 4: "Open endstop", 5: "Close endstop"}
+COMMANDS_MULTIPLEXER = {'kum1': 0b01000001, 'kum2': 0b01000010, 'kum3': 0b01000100, 'kum4': 0b01001000, 'kum5': 0b01010000, 'kum6': 0b01100000, 'POW': 0b01000111, 'off': 0b00000000}
+STATUS_BITS_MULTIPLEXER = {0: "CH1", 1: "CH2", 2: "CH3", 3: "CH4", 4: "CH5", 5: "CH6", 7: "Pumpe"}
 
-commands_kum = {
-    'open': 0b0000011,
-    'close': 0b0000101,
-    'estop': 0b0010000,
-    'none': 0b0000000,
-}
+# Initialize PLCS
+PLCS = init_plcs(IP_ADDRESSES, COMMANDS_KUM, status_addr="V1")
+# Add PLC_multiplexer to PLCS
+PLCS['multiplexer'] = init_plcs(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER, status_addr="V1")
 
-status_bits_Kum = {
-    0: "Estop Trigged",
-    1: "Motor Dir",
-    2: "Motor run",
-    3: "Warning buzzer",
-    4: "Open endstop",
-    5: "Close endstop",
-}
+# Initialize Global Variable
+LAST_FETCHED_TIME = dt(1970, 1, 1)  # Initialized to UNIX epoch time
 
-commands_multiplexer = {
-    'kum1': 0b01000001,
-    'kum2': 0b01000010,
-    'kum3': 0b01000100,
-    'kum4': 0b01001000,
-    'kum5': 0b01010000,
-    'kum6': 0b01100000,
-    # 'pumpe': 0b01000000,
-    'POW': 0b01000111,
-    'off': 0b00000000
-}
-status_bits_Multiplexer = {
-    0: "CH1",
-    1: "CH2",
-    2: "CH3",
-    3: "CH4",
-    4: "CH5",
-    5: "CH6",
-    7: "Pumpe",
-}
-
-# initiate plcs
-plcs = init_plcs(ip_addresses, commands_kum, statusAddr="V1")
-# add PLC_multiplexer to plcs
-plcs['multiplexer'] = init_plcs(ip_address_multiplexer, commands_multiplexer, statusAddr="V1")
-
-# global variable to store the last fetched time
-last_fetched_time = None
-
-# Split PLCs into columns for the layout
-n_columns = 3  # Define the number of columns you want
-plcs_ids = list(plcs.keys())
-columns = [plcs_ids[i::n_columns] for i in range(n_columns)]
+# Split PLCS into columns for the layout
+N_COLUMNS = 3
+PLCS_IDS = list(PLCS.keys())
+COLUMNS = [PLCS_IDS[i::N_COLUMNS] for i in range(N_COLUMNS)]
 
 app = Dash(__name__)
 
@@ -97,14 +65,14 @@ def generate_html_status(status_indicators):
     return html_elements
 
 
-def generate_plc_div(plc_id, plcs, columns):
+def generate_plc_div(plc_id, PLCS, columns):
     return html.Div(
         [html.Div(
             [
                 html.P(
-                    f"PLC{plc_id.split('plc')[-1]}: {'Connected' if plcs[plc_id].status == 'Connected' else 'Unreachable'}"),
+                    f"PLC{plc_id.split('plc')[-1]}: {'Connected' if PLCS[plc_id].status == 'Connected' else 'Unreachable'}"),
                 html.Div([html.Button(f'{cmd}', id=f'button-{plc_id}-{cmd}', n_clicks=0) for cmd in
-                          plcs[plc_id].get_command_list()]),
+                          PLCS[plc_id].get_command_list()]),
                 html.Div(id=f'status-indicator-{plc_id}'),
                 html.Div(id=f'output-{plc_id}')
             ], style={'margin-right': '50px'}
@@ -116,17 +84,17 @@ def generate_plc_div(plc_id, plcs, columns):
     )
 
 
-def generate_multiplex_div(plcs):
+def generate_multiplex_div(PLCS):
     return html.Div([
-        html.P("PLC Multiplexer: Connected" if plcs['multiplexer'].connected else "Not connected"),
+        html.P("PLC Multiplexer: Connected" if PLCS['multiplexer'].connected else "Not connected"),
         html.Div([html.Button(f'{cmd}', id=f'button-multiplexer-{cmd}', n_clicks=0) for cmd in
-                  plcs['multiplexer'].get_command_list()]),
+                  PLCS['multiplexer'].get_command_list()]),
         html.Div(id=f'status-indicator-multiplexer'),
         html.Div(id=f'output-multiplexer')
     ], style={'margin-right': '50px'})
 
 
-def create_layout(plcs, columns, plc_id, graph_interval=10 * 1000):
+def create_layout(PLCS, columns, plc_id, graph_interval=10 * 1000):
     return html.Div(
         [
             html.Img(id='live-feed', src=''),  # camera feed
@@ -138,9 +106,9 @@ def create_layout(plcs, columns, plc_id, graph_interval=10 * 1000):
             ),
             dcc.Store(id='stored-data', storage_type='session')
             ,
-            generate_plc_div(plc_id, plcs, columns)
+            generate_plc_div(plc_id, PLCS, columns)
             ,
-            generate_multiplex_div(plcs)
+            generate_multiplex_div(PLCS)
             ,
             html.Button("Download CSV", id="btn_csv")
             ,
@@ -150,7 +118,7 @@ def create_layout(plcs, columns, plc_id, graph_interval=10 * 1000):
     )
 
 
-app.layout = create_layout(plcs, columns)
+app.layout = create_layout(PLCS, columns)
 
 
 @app.callback(
@@ -167,17 +135,18 @@ def func(n_clicks, stored_data):
 
 
 @app.callback(
-    [Output(f'status-indicator-{plc_id}', 'children') for plc_id in plcs.keys()],
+    [Output(f'status-indicator-{plc_id}', 'children') for plc_id in PLCS.keys()],
     Input('interval-component', 'n_intervals')
 )
-generate_html_status(generate_status_indicators(plc, bit_meanings))
+def update_status(n):
+    return [generate_html_status(generate_status_indicators(PLCS[plc_id], STATUS_BITS_KUM)) for plc_id in PLCS.keys()]
 
 # Creating separate callbacks for each PLC
-for plc_id in plcs.keys():
+for plc_id in PLCS.keys():
     @app.callback(
         Output(f'output-{plc_id}', 'children'),
-        [Input(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in plcs[plc_id].get_command_list()],
-        [State(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in plcs[plc_id].get_command_list()]
+        [Input(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].get_command_list()],
+        [State(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].get_command_list()]
     )
     def send_command(*args):
         ctx = dash.callback_context
@@ -188,7 +157,7 @@ for plc_id in plcs.keys():
             plc_id, cmd = button_id.split('-')[1:]
             n_clicks = ctx.states[f'{button_id}.n_clicks']
             if n_clicks > 0:
-                plcs[plc_id].write_command("V0", plcs[plc_id].commands[cmd])
+                PLCS[plc_id].write_command("V0", PLCS[plc_id].commands[cmd])
                 return f"Command {cmd} sent to {plc_id}"
 
 
