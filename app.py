@@ -148,8 +148,8 @@ def update_status(n):
 for plc_id in PLCS.keys():
     @app.callback(
         Output(f'output-{plc_id}', 'children'),
-        [Input(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].get_command_list()],
-        [State(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].get_command_list()]
+        [Input(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].commands.keys()]
+        [State(f'button-{plc_id}-{cmd}', 'n_clicks') for cmd in PLCS[plc_id].commands.keys()]
     )
     def send_command(*args):
         ctx = dash.callback_context
