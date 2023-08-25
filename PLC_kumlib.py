@@ -121,12 +121,13 @@ def generate_status_indicators(plc: ConfigPLC):
     if plc.connected:
         status_data = plc.status_data
         binary_representation = format(status_data['status'], '08b')[::-1]
-        print(plc.status_bits)
-        for i, bit in enumerate(binary_representation[:len(plc.status_bits)]):
+
+        for i in plc.status_bits.keys():
+            bit = binary_representation[i]  # Get bit at position i
             color = 'green' if bit == '1' else 'red'
-            print(i)
             status_indicators.append({'text': plc.status_bits[i], 'color': color})
 
         return status_indicators
     else:
         return [{'text': "PLC not connected", 'color': 'red'}]
+
