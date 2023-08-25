@@ -3,6 +3,7 @@ import snap7
 import time
 import threading
 from typing import List, Dict
+from datetime import datetime
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -59,6 +60,8 @@ class ConfigPLC:
             self.logger.error(f"Connection failed: {e}")
 
         if self.connected:
+            self.database.insert_plc_history(
+                [datetime.datetime.now().isoformat(), self.ip_address, "Connected"])  # Add this line
             self.logger.info("Connected")
             if self.status_thread:
                 self.status_thread.start()
@@ -68,6 +71,8 @@ class ConfigPLC:
         if self.status_thread and self.status_thread.is_alive():
             self.status_thread.join()
         self.plc.disconnect()
+        self.database.insert_plc_history(
+            [datetime.datetime.now().isoformat(), self.ip_address, "Disconnected"])  # Add this line
         self.logger.info("Disconnected")
 
     def write_command(self, address: str, command: int, delay: float = 0.1):
@@ -75,6 +80,8 @@ class ConfigPLC:
         if self.connected:
             self.plc.write(address, command)
             self.logger.info(f"Wrote command 0b{command:08b} to {address}")
+            self.database.insert_plc_history([datetime.datetime.now().isoformat(), self.ip_address,
+                                              f"Command: {command} written to {address}"])  # Add this line
             if command in [self.commands.get(key) for key in ['open', 'close', 'estop']]:
                 time.sleep(delay)
                 self.plc.write(address, self.commands.get('none', 0))
@@ -84,7 +91,14 @@ class ConfigPLC:
         """Update status of the PLC."""
         while self.connected:
             try:
-                self.status_data['status'] = self.plc.read(self.status_data['address'])
+                new_status = self.plc.read(self.status_data['address'])
+                if new_status != self.prev_status:  # Check if the status has changed
+                    self.status_data['status'] = new_status
+                    self.prev_status = new_status
+                    try:
+                        self.database.insert_status_change([datetime.now().isoformat(), self.ip_address, new_status])  # Log the change
+                    except Exception as e:
+                        self.logger.error(f"Failed to log status change to database: {e}")
                 time.sleep(1.0)
             except snap7.Snap7Exception as e:  # Replace with the actual exception types
                 self.logger.error(f"Error updating status: {e}")
