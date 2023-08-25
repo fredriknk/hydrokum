@@ -83,7 +83,7 @@ def generate_plc_div(PLCS, COLUMNS):
             ], style={'margin-right': '50px'}
         )
 
-            for plc_id in [id for col in COLUMNS for id in col if id != 'multiplexer']
+            for plc_id in [id for col in COLUMNS for id in col if "multiplexer" not in id]
 
         ], style={'display': 'flex', 'justify-content': 'space-around'}
     )
@@ -91,7 +91,7 @@ def generate_plc_div(PLCS, COLUMNS):
 
 def generate_multiplex_div(PLCS):
     return html.Div([
-        html.P("PLC Multiplexer: Connected" if PLCS['multiplexer'].connected else "Not connected"),
+        html.P("PLC Multiplexer: Connected" if PLCS['multiplexer'].connected else "PLC Multiplexer: NOT Connected"),
         html.Div([html.Button(f'{cmd}', id=f'button-multiplexer-{cmd}', n_clicks=0) for cmd in
                   PLCS['multiplexer'].commands.keys()]),
         html.Div(id=f'status-indicator-multiplexer'),
@@ -102,13 +102,12 @@ def generate_multiplex_div(PLCS):
 def create_layout(PLCS, COLUMNS, graph_interval=10 * 1000):
     return html.Div(
         [
-            html.Img(id='live-feed', src=''),  # camera feed
-            dcc.Graph(id='live-update-graph'),  # live graph
-            dcc.Interval(
-                id='interval-component',
-                interval=graph_interval,
-                n_intervals=0
-            ),
+            html.Img(id='live-feed', src='')  # camera feed
+            ,
+            dcc.Graph(id='live-update-graph')   # live graph
+            ,
+            dcc.Interval( id='interval-component',interval=graph_interval,n_intervals=0)
+            ,
             dcc.Store(id='stored-data', storage_type='session')
             ,
             generate_plc_div(PLCS, COLUMNS)
