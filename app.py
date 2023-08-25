@@ -2,6 +2,7 @@
 import os
 import time
 from datetime import datetime as dt
+from datetime import timedelta
 
 # Dash and Plotly Imports
 from dash import dcc, html, Dash, Input, Output, State
@@ -233,7 +234,7 @@ def update_graph_live(n, stored_data, lim=3600):
     for i, col in enumerate(df.columns[1:]):
         latest_value = df[col].iloc[1]  # Get the last value
         latest_time = pd.to_datetime(df['time'].iloc[1])  # Converts 'time' string to datetime object
-        latest_time_with_offset = latest_time + datetime.timedelta(seconds=1)  # Adds a 1 minute offset
+        latest_time_with_offset = latest_time + timedelta(seconds=1)  # Adds a 1 minute offset
 
         # Adjust yref to point to the correct yaxis (e.g., y2, y3, ...)
         annotations.append(
