@@ -68,7 +68,7 @@ def generate_html_status(status_indicators):
     return html_elements
 
 
-def generate_plc_div(plc_id, PLCS, COLUMNS):
+def generate_plc_div(PLCS, COLUMNS):
     return html.Div(
         [html.Div(
             [
@@ -97,7 +97,7 @@ def generate_multiplex_div(PLCS):
     ], style={'margin-right': '50px'})
 
 
-def create_layout(PLCS, COLUMNS, plc_id, graph_interval=10 * 1000):
+def create_layout(PLCS, COLUMNS, graph_interval=10 * 1000):
     return html.Div(
         [
             html.Img(id='live-feed', src=''),  # camera feed
@@ -109,7 +109,7 @@ def create_layout(PLCS, COLUMNS, plc_id, graph_interval=10 * 1000):
             ),
             dcc.Store(id='stored-data', storage_type='session')
             ,
-            generate_plc_div(plc_id, PLCS, COLUMNS)
+            generate_plc_div(PLCS, COLUMNS)
             ,
             generate_multiplex_div(PLCS)
             ,
