@@ -41,7 +41,7 @@ COMMANDS_MULTIPLEXER = {'kum1': 0b01000001, 'kum2': 0b01000010, 'kum3': 0b010001
 STATUS_BITS_MULTIPLEXER = {0: "CH1", 1: "CH2", 2: "CH3", 3: "CH4", 4: "CH5", 5: "CH6", 7: "Pumpe"}
 
 # Initialize PLCS
-PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM, status_addr="V1")
+PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM)
 # Add PLC_multiplexer to PLCS
 PLCS['multiplexer'] = ConfigPLC(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER)
 

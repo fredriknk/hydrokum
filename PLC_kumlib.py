@@ -94,10 +94,10 @@ class ConfigPLC:
         return self.status_data['status']
 
 
-def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int]) -> Dict[str, ConfigPLC]:
+def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int],status_reg="V1") -> Dict[str, ConfigPLC]:
     plcs = {}
     for i, ip in enumerate(ip_addresses):
-        plcs[f"{plc_type}{i + 1}"] = ConfigPLC(ip, commands)
+        plcs[f"{plc_type}{i + 1}"] = ConfigPLC(ip, commands,status_reg)
 
     for plc_id, plc in plcs.items():
         try:
