@@ -20,13 +20,16 @@ class Database:
 
     def create_table(self) -> None:
         conn = self.create_connection()
-        with conn:
-            conn.execute('''CREATE TABLE IF NOT EXISTS data
-                         (time text, N2O_ppm real, CO2_ppm real, CH4_ppm real, NH3_ppb real)''')
-            conn.execute('''CREATE TABLE IF NOT EXISTS plc_history
-                         (time text, ip_address text, event text)''')
-            conn.execute('''CREATE TABLE IF NOT EXISTS status_history
-                         (time text, ip_address text, status int)''')
+        try:
+            with conn:
+                conn.execute('''CREATE TABLE IF NOT EXISTS data
+                             (time text, N2O_ppm real, CO2_ppm real, CH4_ppm real, NH3_ppb real)''')
+                conn.execute('''CREATE TABLE IF NOT EXISTS plc_history
+                             (time text, ip_address text, event text)''')
+                conn.execute('''CREATE TABLE IF NOT EXISTS status_history
+                             (time text, ip_address text, status int)''')
+        except Error as e:
+            self.logger.error(f"Failed to create table: {e}")
 
     def insert_status_change(self, data: List) -> None:
         conn = self.create_connection()
