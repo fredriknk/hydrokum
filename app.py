@@ -222,7 +222,7 @@ def update_graph_live(n, stored_data, lim=3600):
     fig = make_subplots(rows=4, cols=1, vertical_spacing=0.05)
     fig.update_layout(height=800)
 
-    for i, col in enumerate(df.COLUMNS[1:]):
+    for i, col in enumerate(df.columns[1:]):
         fig.add_trace(go.Scatter(x=df['time'], y=df[col], name=col), row=i + 1, col=1)
 
     # Update xaxis properties
@@ -230,7 +230,7 @@ def update_graph_live(n, stored_data, lim=3600):
 
     # Add annotations with the latest values
     annotations = []
-    for i, col in enumerate(df.COLUMNS[1:]):
+    for i, col in enumerate(df.columns[1:]):
         latest_value = df[col].iloc[1]  # Get the last value
         latest_time = pd.to_datetime(df['time'].iloc[1])  # Converts 'time' string to datetime object
         latest_time_with_offset = latest_time + datetime.timedelta(seconds=1)  # Adds a 1 minute offset
