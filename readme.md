@@ -47,18 +47,6 @@ source hydrohus\Scripts\activate`
 ```bash
 pip install -r requirements.txt
 ```
-
-## Usage
-
-### Running the Web App
-
-```bash
-# Make sure you're in the project directory and virtual environment is activated
-python main.py
-```
-
-Open your web browser and go to `http://127.0.0.1:8050/`
-
 ### Environment Variables
 
 To set environment variables, create a `.env` file in the project root and specify the variables:
@@ -68,6 +56,16 @@ USER_NAME=admin
 PASSWORD=###
 BASE_URL=http://IP/cgi-bin/api.cgi?cmd=Snap&channel=0&rs=wuuPhkmUCeI9WG7C
 ```
+## Usage
+
+### Running the Web App
+
+```bash
+# Make sure you're in the project directory and virtual environment is activated
+python3 main.py
+```
+
+Open your web browser and go to `http://127.0.0.1:8050/`
 
 ## Contributing
 
