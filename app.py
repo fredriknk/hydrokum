@@ -203,7 +203,7 @@ def update_image(n):
               [State('stored-data', 'data')])  # Use State to get the current data from dcc.Store
 def update_graph_live(n, stored_data, lim=3600):
     # Query all data from the database
-    new_data = pd.DataFrame( db.query_data(None, lim), COLUMNS=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
+    new_data = pd.DataFrame( db.query_data(None, lim), columns=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
 
     # if there's no stored data, store the new data
     if stored_data is None:

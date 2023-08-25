@@ -114,7 +114,7 @@ def init_plcs(ip_addresses: List[str], plc_type: str, commands: Dict[str, int],s
 
 def generate_status_indicators(plc: ConfigPLC, bit_meanings: List[str]) -> List[Dict[str, str]]:
     status_indicators = []
-    if plc.status == 'Connected':
+    if plc.get_status()== 'Connected':
         status_data = plc.status_data
         binary_representation = format(status_data['status'], '08b')[::-1]
 
