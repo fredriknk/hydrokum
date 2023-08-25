@@ -266,7 +266,7 @@ def update_stored_data(_, stored_data, lim=1000):
     else:
         last_plotted_time = None
 
-    new_data = pd.DataFrame(query_data(last_plotted_time, lim),
+    new_data = pd.DataFrame(db.query_data(last_plotted_time, lim),
                             COLUMNS=['time', 'N2O ppm', 'CO2 ppm', 'CH4 ppm', 'NH3 ppb'])
 
     if stored_data is None:
