@@ -116,7 +116,7 @@ def connect_plcs(plcs):
     return plcs
 
 
-def generate_status_indicators(plc: ConfigPLC) -> List[Dict[str]]:
+def generate_status_indicators(plc: ConfigPLC):
     status_indicators = []
     if plc.connected:
         status_data = plc.status_data
