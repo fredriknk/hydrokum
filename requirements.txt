@@ -1,0 +1,17 @@
+# Dash and Plotly
+Dash
+plotly
+
+# Data Handling
+pandas
+
+# Image and Requests
+PILLOW
+requests
+
+# Environment Variables
+python-dotenv
+
+# Custom Libraries (if they are publicly available, otherwise install manually)
+# snap7 for PLC communication
+python-snap7
