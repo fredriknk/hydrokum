@@ -34,7 +34,7 @@ class MockPLC:
     def get_connected(self):
         return self.connected
 class ConfigPLC:
-    def __init__(self, ip_address: str, commands: Dict[str, int], status_bits = None, status_reg: str = "V1", update_status: bool = True):
+    def __init__(self, ip_address: str, commands: Dict[str, int], status_bits = None, status_reg: str = "V1", update_status: bool = True, database=None):
         """Initialize the ConfigPLC class."""
         self.logger = logging.getLogger(__name__)
         self.plc = snap7.logo.Logo()
@@ -42,6 +42,7 @@ class ConfigPLC:
         self.connected = False
         self.commands = commands
         self.status_bits = status_bits
+        self.database = database  # Add this line
 
         self.status_data = {
             'address': status_reg,
@@ -60,7 +61,8 @@ class ConfigPLC:
             self.logger.error(f"Connection failed: {e}")
 
         if self.connected:
-            self.database.insert_plc_history(
+            if self.database:
+                self.database.insert_plc_history(
                 [datetime.datetime.now().isoformat(), self.ip_address, "Connected"])  # Add this line
             self.logger.info("Connected")
             if self.status_thread:
@@ -71,8 +73,9 @@ class ConfigPLC:
         if self.status_thread and self.status_thread.is_alive():
             self.status_thread.join()
         self.plc.disconnect()
-        self.database.insert_plc_history(
-            [datetime.datetime.now().isoformat(), self.ip_address, "Disconnected"])  # Add this line
+        if self.database:
+            self.database.insert_plc_history(
+                [datetime.datetime.now().isoformat(), self.ip_address, "Disconnected"])  # Add this line
         self.logger.info("Disconnected")
 
     def write_command(self, address: str, command: int, delay: float = 0.1):
@@ -80,7 +83,8 @@ class ConfigPLC:
         if self.connected:
             self.plc.write(address, command)
             self.logger.info(f"Wrote command 0b{command:08b} to {address}")
-            self.database.insert_plc_history([datetime.datetime.now().isoformat(), self.ip_address,
+            if self.database:
+                self.database.insert_plc_history([datetime.datetime.now().isoformat(), self.ip_address,
                                               f"Command: {command} written to {address}"])  # Add this line
             if command in [self.commands.get(key) for key in ['open', 'close', 'estop']]:
                 time.sleep(delay)

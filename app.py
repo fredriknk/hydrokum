@@ -41,6 +41,8 @@ STATUS_BITS_KUM = {0: "Estop Trigged", 1: "Motor Dir", 2: "Motor run", 3: "Warni
 COMMANDS_MULTIPLEXER = {'kum1': 0b01000001, 'kum2': 0b01000010, 'kum3': 0b01000100, 'kum4': 0b01001000, 'kum5': 0b01010000, 'kum6': 0b01100000, 'POW': 0b01000111, 'off': 0b00000000}
 STATUS_BITS_MULTIPLEXER = {0: "CH1", 1: "CH2", 2: "CH3", 3: "CH4", 4: "CH5", 5: "CH6", 7: "Pumpe"}
 
+db = Database('my_database.sqlite')
+
 # Initialize PLCS
 PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM,STATUS_BITS_KUM,  "V1")
 # Add PLC_multiplexer to PLCS
