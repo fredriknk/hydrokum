@@ -75,7 +75,7 @@ def generate_plc_div(PLCS, COLUMNS):
                 html.P(
                     f"PLC{plc_id.split('plc')[-1]}: {'Connected' if PLCS[plc_id].status == 'Connected' else 'Unreachable'}"),
                 html.Div([html.Button(f'{cmd}', id=f'button-{plc_id}-{cmd}', n_clicks=0) for cmd in
-                          PLCS[plc_id].get_command_list()]),
+                          PLCS[plc_id].commands.keys()]),
                 html.Div(id=f'status-indicator-{plc_id}'),
                 html.Div(id=f'output-{plc_id}')
             ], style={'margin-right': '50px'}
