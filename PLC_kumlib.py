@@ -33,7 +33,7 @@ class MockPLC:
     def get_connected(self):
         return self.connected
 class ConfigPLC:
-    def __init__(self, ip_address: str, commands: Dict[str, int], status_address: str, update_status: bool = True):
+    def __init__(self, ip_address: str, commands: Dict[str, int], status_reg: str = "V1", update_status: bool = True):
         """Initialize the ConfigPLC class."""
         self.logger = logging.getLogger(__name__)
         self.plc = snap7.logo.Logo()
@@ -42,7 +42,7 @@ class ConfigPLC:
         self.commands = commands
 
         self.status_data = {
-            'address': status_address,
+            'address': status_reg,
             'byte_array': bytearray(1),
             'status': 0
         }
