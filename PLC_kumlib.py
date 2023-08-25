@@ -100,10 +100,12 @@ class ConfigPLC:
                 if new_status != self.prev_status:  # Check if the status has changed
                     self.status_data['status'] = new_status
                     self.prev_status = new_status
-                    try:
-                        self.database.insert_status_change([datetime.now().isoformat(), self.ip_address, new_status])  # Log the change
-                    except Exception as e:
-                        self.logger.error(f"Failed to log status change to database: {e}")
+                    self.logger.info(f"Status changed to 0b{new_status:08b}")
+                    if self.database:
+                        try:
+                            self.database.insert_status_change([datetime.now().isoformat(), self.ip_address, new_status])  # Log the change
+                        except Exception as e:
+                            self.logger.error(f"Failed to log status change to database: {e}")
                 time.sleep(1.0)
             except snap7.Snap7Exception as e:  # Replace with the actual exception types
                 self.logger.error(f"Error updating status: {e}")
