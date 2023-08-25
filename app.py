@@ -41,9 +41,9 @@ COMMANDS_MULTIPLEXER = {'kum1': 0b01000001, 'kum2': 0b01000010, 'kum3': 0b010001
 STATUS_BITS_MULTIPLEXER = {0: "CH1", 1: "CH2", 2: "CH3", 3: "CH4", 4: "CH5", 5: "CH6", 7: "Pumpe"}
 
 # Initialize PLCS
-PLCS = init_plcs(IP_ADDRESSES, COMMANDS_KUM)
+PLCS = init_plcs(IP_ADDRESSES,"KUM", COMMANDS_KUM, status_addr="V1")
 # Add PLC_multiplexer to PLCS
-PLCS['multiplexer'] = init_plcs(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER, status_addr="V1")
+PLCS['multiplexer'] = ConfigPLC(IP_ADDRESS_MULTIPLEXER, COMMANDS_MULTIPLEXER)
 
 # Initialize Global Variable
 LAST_FETCHED_TIME = dt(1970, 1, 1)  # Initialized to UNIX epoch time
