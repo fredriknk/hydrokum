@@ -32,39 +32,39 @@ class Database:
                 conn.execute('''CREATE TABLE IF NOT EXISTS status_history
                              (time text, ip_address text, status int)''')
         except Error as e:
-            self.logger.error(f"Failed to create table: {e}")
+            logger.error(f"Failed to create table: {e}")
 
     def insert_status_change(self, data: List) -> None:
         conn = self.create_connection()
         if conn is None:
-            self.logger.error("Database connection failed for status change.")
+            logger.error("Database connection failed for status change.")
             return
         try:
             with conn:
                 conn.execute("INSERT INTO status_history (time, ip_address, status) VALUES (?, ?, ?)", data)
         except Error as e:
-            self.logger.error(f"Failed to insert status change: {e}")
+            logger.error(f"Failed to insert status change: {e}")
     def insert_plc_history(self, data: List) -> None:
         conn = self.create_connection()
         if conn is None:
-            self.logger.error("Database connection failed for history write.")
+            logger.error("Database connection failed for history write.")
             return
         try:
             with conn:
                 conn.execute("INSERT INTO plc_history (time, ip_address, event) VALUES (?, ?, ?)", data)
         except Error as e:
-            self.logger.error(f"Failed to insert history: {e}")
+            logger.error(f"Failed to insert history: {e}")
 
     def insert_data(self, data: List) -> None:
         conn = self.create_connection()
         if conn is None:
-            self.logger.error("Database connection failed for data write.")
+            logger.error("Database connection failed for data write.")
             return
         try:
             with conn:
                 conn.execute("INSERT INTO data (time, N2O_ppm, CO2_ppm, CH4_ppm, NH3_ppb) VALUES (?, ?, ?, ?, ?)", data)
         except Error as e:
-            self.logger.error(f"Failed to insert status change: {e}")
+            logger.error(f"Failed to insert status change: {e}")
 
     def query_data(self, last_plotted_time: Optional[str] = None, lim: int = 1000) -> List[Tuple]:
         conn = self.create_connection()
