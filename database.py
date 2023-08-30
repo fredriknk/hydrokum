@@ -1,3 +1,4 @@
+import logging
 import datetime
 import socket
 import time
@@ -5,11 +6,13 @@ import sqlite3
 from sqlite3 import Error
 from typing import List, Tuple, Optional, Any
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self, db_name: str):
         self.db_name = db_name
-
+        self.logger = logger  # Initialize logger
     def create_connection(self) -> Optional[sqlite3.Connection]:
         try:
             conn = sqlite3.connect(self.db_name)
@@ -88,11 +91,9 @@ def main():
 
         values = data.strip().split(';')
         values_to_plot = [float(values[2]), float(values[7]), float(values[9]), float(values[12])]
-        print(values)
-
         # Insert new data into the database
         db.insert_data([str(datetime.datetime.now())] + values_to_plot)
-
+        logger.info(f"Inserted data: {values_to_plot}")
         # Sleep for 5 seconds
         time.sleep(5)
 
